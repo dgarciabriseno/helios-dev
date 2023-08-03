@@ -125,14 +125,14 @@ class ThreeScene {
         return new Promise<string>((resolve, reject) => {
             this._renderer.domElement.toBlob(
                 async (blob) => {
+                    let buffer = new Uint8Array(await blob.arrayBuffer());
                     let base64 = btoa(
                         String.fromCharCode.apply(
                             null,
-                            new Uint8Array(await blob.arrayBuffer())
+                            buffer
                         )
                     );
                     resolve("data:image/jpeg;base64, " + base64);
-                    console.log(blob);
                 },
                 "image/jpeg",
                 0.5
@@ -145,14 +145,13 @@ class ThreeScene {
      * @returns {Promise<string>} Base64 data URI
      */
     CreateScreenshotFromCamera(): Promise<string> {
-        this._renderer.render(this._scene, this._camera.GetCameraInstance());
         return new Promise<string>((resolve, reject) => {
             this._renderer.domElement.toBlob(
                 async (blob) => {
-                    let buffer = await blob.arrayBuffer();
+                    let buffer = new Uint8Array(await blob.arrayBuffer());
                     let bintext = String.fromCharCode.apply(
                         null,
-                        new Uint8Array(buffer)
+                        buffer
                     );
                     let base64 = btoa(bintext);
                     resolve("data:image/png;base64, " + base64);
