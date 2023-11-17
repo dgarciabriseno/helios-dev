@@ -5,7 +5,9 @@
   "main": "Launcher.js",
   "scripts": {
     "import_pfss": "cd server && python -m scripts.pfss.import gong ../resources/pfss/gong",
+    "pretest": "sed -i -e 's|https://api.gl.helioviewer.org|http://127.0.0.1:5000|' src/Configuration.js",
     "test": "jest",
+    "posttest": "sed -i -e 's|http://127.0.0.1:5000|https://api.gl.helioviewer.org|' src/Configuration.js",
     "docs": "typedoc",
     "view-docs": "open docs/index.html",
     "build": "./build.sh",

@@ -53,6 +53,7 @@ test("Add Favorite", () => {
     let favorites = new Favorites(scene);
     favorites.AddFavorite("data:thumbnail blob");
     let storedFavorites = favorites.GetFavorites();
+    console.log(storedFavorites)
     expect(storedFavorites.length).toBe(1);
     expect(storedFavorites[0].thumbnail).toBe("data:thumbnail blob");
     expect(storedFavorites[0].layers).toStrictEqual(scene.GetLayers());

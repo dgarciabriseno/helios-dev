@@ -1,5 +1,5 @@
 import Scene from "../Scene/scene";
-import { ToDateString } from "../common/dates";
+import { ToDateString, ToUTCDate } from "../common/dates";
 import { GetSourceName } from "../common/sources";
 import { SceneLayer } from "../common/types";
 
@@ -43,12 +43,12 @@ class Favorites {
      */
     static RestoreDates(favorites: Favorite[]): Favorite[] {
         return favorites.map((favorite) => {
-            favorite.created_at = new Date(favorite.created_at);
-            favorite.start = new Date(favorite.start);
-            favorite.end = new Date(favorite.end);
+            favorite.created_at = ToUTCDate(new Date(favorite.created_at));
+            favorite.start = ToUTCDate(new Date(favorite.start));
+            favorite.end = ToUTCDate(new Date(favorite.end));
             favorite.layers = favorite.layers.map((layer) => {
-                layer.start = new Date(layer.start);
-                layer.end = new Date(layer.end);
+                layer.start = ToUTCDate(new Date(layer.start));
+                layer.end = ToUTCDate(new Date(layer.end));
                 return layer;
             });
             return favorite;

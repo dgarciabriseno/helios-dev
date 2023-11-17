@@ -3,6 +3,14 @@ import { ToDateString } from "../common/dates";
 import { ToCoordinates } from "./common";
 import { Favorite, Favorites } from "./favorites";
 import { PFSS, ParsePfssBundle } from "../common/pfss";
+import * as HeliosAPI from './helios/api';
+
+const config = {basePath: Config.helios_api_url};
+let api = {
+    data: new HeliosAPI.DataApi(config),
+    ephemeris: new HeliosAPI.EphemerisApi(config),
+    scene: new HeliosAPI.SceneApi(config)
+}
 
 class Helios {
     /**
@@ -11,53 +19,27 @@ class Helios {
      * @returns Coordinates
      */
     static async GetJp2Observer(id) {
-        let api_url = Config.helios_api_url + "observer/position?id=" + id;
-        let result = await fetch(api_url);
-        let data = await result.json();
-        if (data.hasOwnProperty("error")) {
-            throw data.error;
-        }
-        return ToCoordinates(data);
+        const result = await api.ephemeris.getJp2Observer(id);
+        return ToCoordinates(result);
     }
 
     static async SaveScene(favorite: Favorite): Promise<number> {
-        let copy: any = window.structuredClone(favorite);
-        copy.created_at = ToDateString(copy.created_at);
-        copy.start = ToDateString(copy.start);
-        copy.end = ToDateString(copy.end);
-        for (let i = 0; i < copy.layers.length; i++) {
-            copy.layers[i].start = ToDateString(copy.layers[i].start as Date);
-            copy.layers[i].end = ToDateString(copy.layers[i].end as Date);
-        }
-        let response = await fetch(Config.helios_api_url + "scene", {
-            method: "POST", // *GET, POST, PUT, DELETE, etc.
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(copy), // body data type must match "Content-Type" header
-        });
-        let result = await response.json();
-        if (result.hasOwnProperty("error")) {
-            throw result["error"];
-        }
+        let result = await api.scene.saveScene(favorite);
         return result.id;
     }
 
     static async LoadScene(id: number): Promise<Favorite> {
-        let response = await fetch(Config.helios_api_url + "scene/" + id);
-        let data = await response.json();
-        return Favorites.RestoreDates([data])[0];
+        let scene = await api.scene.getScene(id);
+        return Favorites.RestoreDates([scene as Favorite])[0];
     }
 
     static async GetRecentlyShared(): Promise<Favorite[]> {
-        let response = await fetch(Config.helios_api_url + "scene/latest/10");
-        let data = await response.json();
-        return Favorites.RestoreDates(data);
+        let result = await api.scene.getRecentlyShared(10);
+        return Favorites.RestoreDates(result.scenes);
     }
 
     static async get_field_lines_gong(
-        date: Array<Date>,
-        detail: number = 50
+        date: Array<Date>
     ): Promise<PFSS[]> {
         // Construct a query string in the form date=<date1>&date=<date2>...
         let date_strings = date.map((d) => "date=" + ToDateString(d));
@@ -65,8 +47,6 @@ class Helios {
         let url =
             Config.helios_api_url +
             "pfss/gong/?detail=" +
-            detail +
-            "&" +
             query_params;
         let response = await fetch(url);
         let reader = response.body.getReader();
@@ -74,10 +54,8 @@ class Helios {
     }
 
     static async GetEarthPosition(date: Date) {
-        let url = Config.helios_api_url + "/earth/" + ToDateString(date);
-        let response = await fetch(url);
-        let data = await response.json();
-        return ToCoordinates(data);
+        let coordinate = await api.ephemeris.getEarthPosition(ToDateString(date));
+        return ToCoordinates(coordinate);
     }
 }
 
